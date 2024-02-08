@@ -74,16 +74,22 @@ class Predictor(BasePredictor):
 
         video_clip_duration = audio_clip.duration / len(videos)
 
-        video_clips = []
-        for video in videos:
-            video_clip = VideoFileClip(video)
+        final_clips = []
+        for video_path in videos:
+            video_clip = VideoFileClip(video_path)
             reversed_clip = video_clip.fx(vfx.time_mirror)
-            video_clip = concatenate_videoclips([video_clip, reversed_clip])
-            video_clips = [video_clip.loop(duration=video_clip_duration)]
+            # Create a reversed version of the video clip
+            # Concatenate the original clip with its reversed version
+            symmetrized_clip = concatenate_videoclips([video_clip, reversed_clip])
+
+            video_clips = [symmetrized_clip.loop(duration=video_clip_duration)]
             final_video_clip = concatenate_videoclips(video_clips)
-            video_clips.append(final_video_clip)
-        final = concatenate_videoclips(video_clips)
-        final = final.set_audio(audio_clip)
+            final_clips.append(final_video_clip)
+
+        final_video = concatenate_videoclips(final_clips)
+        final_video = final_video.set_audio(audio_clip)
         output_path = "/tmp/output.mp4"
-        final.write_videofile(output_path, fps=24, codec="libx264", audio_codec="aac")
+        final_video.write_videofile(
+            output_path, fps=24, codec="libx264", audio_codec="aac"
+        )
         return Path(output_path)
