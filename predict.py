@@ -77,10 +77,8 @@ class Predictor(BasePredictor):
         final_clips = []
         for video_path in videos:
             video_clip = VideoFileClip(video_path)
-            reversed_clip = video_clip.fx(vfx.time_mirror)
-            symmetrized_clip = concatenate_videoclips([video_clip, reversed_clip])
 
-            video_clips = [symmetrized_clip.loop(duration=video_clip_duration)]
+            video_clips = [video_clip.loop(duration=video_clip_duration)]
             final_video_clip = concatenate_videoclips(video_clips)
             final_clips.append(final_video_clip)
 
