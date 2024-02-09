@@ -27,13 +27,18 @@ class Predictor(BasePredictor):
         video2: Path = Input(description="Second image", default=None),
         video3: Path = Input(description="Third image", default=None),
         video4: Path = Input(description="Fourth image", default=None),
+        video_frames: int = Input(
+            description="Number of frames to double", default=None
+        ),
         audio: Path = Input(description="Audio file"),
     ) -> Path:
         """Run a single prediction on the model"""
         if image:
             return self.predict_image(image, image2, image3, image4, audio)
         elif video:
-            return self.predict_video(video, video2, video3, video4, audio)
+            return self.predict_video(
+                video, video2, video3, video4, video_frames, audio
+            )
         else:
             raise ValueError("No input provided")
 
@@ -61,7 +66,7 @@ class Predictor(BasePredictor):
         final.write_videofile(output_path, fps=24, codec="libx264", audio_codec="aac")
         return Path(output_path)
 
-    def predict_video(self, video, video2, video3, video4, audio):
+    def predict_video(self, video, video2, video3, video4, video_frames, audio):
         audio_path = str(audio)
         audio_clip = AudioFileClip(audio_path)
 
@@ -75,14 +80,18 @@ class Predictor(BasePredictor):
 
         video_clip_duration = audio_clip.duration / len(videos)
 
+        if video_frames:
+            doubled_frame_count = video_frames * 2
+        else:
+            doubled_frame_count = 50
         final_clips = []
 
         print(video_clip_duration)
         for index, video_path in enumerate(videos):
             print(video_path)
             os.system(
-                'ffmpeg -i {0} -filter_complex "[0]reverse[r];[0][r]concat,loop=2:50,setpts=N/55/TB" /tmp/newvideo-{1}.mp4 -y'.format(
-                    video_path, index
+                'ffmpeg -i {0} -filter_complex "[0]reverse[r];[0][r]concat,loop=1:{2},setpts=N/55/TB" /tmp/newvideo-{1}.mp4 -y'.format(
+                    video_path, index, doubled_frame_count
                 )
             )
 
