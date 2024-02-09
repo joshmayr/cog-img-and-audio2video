@@ -10,5 +10,8 @@ build:
     - "moviepy==2.0.0.dev2"
     - "pillow"
 
+  system_packages:
+    - "ffmpeg"
+
 # predict.py defines how predictions are run on your model
 predict: "predict.py:Predictor"

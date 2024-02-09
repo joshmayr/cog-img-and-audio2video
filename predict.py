@@ -9,6 +9,7 @@ from moviepy.editor import (
     VideoFileClip,
 )
 import moviepy.video.fx.all as vfx
+import os
 
 
 class Predictor(BasePredictor):
@@ -75,12 +76,27 @@ class Predictor(BasePredictor):
         video_clip_duration = audio_clip.duration / len(videos)
 
         final_clips = []
-        for video_path in videos:
-            video_clip = VideoFileClip(video_path)
 
-            video_clips = [video_clip.loop(duration=video_clip_duration)]
-            final_video_clip = concatenate_videoclips(video_clips)
+        print(video_clip_duration)
+        for index, video_path in enumerate(videos):
+            print(video_path)
+            os.system(
+                'ffmpeg -i {0} -filter_complex "[0]reverse[r];[0][r]concat,loop=2:50,setpts=N/55/TB" /tmp/newvideo-{1}.mp4 -y'.format(
+                    video_path, index
+                )
+            )
+
+            video_clip = VideoFileClip("/tmp/newvideo-{0}.mp4".format(index))
+
+            num_loops = int(video_clip_duration / video_clip.duration)
+            remaining_duration = video_clip_duration % video_clip.duration
+
+            looped_videos = []
+            for i in range(num_loops):
+                looped_videos.append(video_clip)
+            final_video_clip = concatenate_videoclips(looped_videos)
             final_clips.append(final_video_clip)
+            final_clips.append(video_clip.subclip(0, remaining_duration))
 
         final_video = concatenate_videoclips(final_clips)
         final_video = final_video.set_audio(audio_clip)
